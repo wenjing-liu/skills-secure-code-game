@@ -21,7 +21,9 @@ class MyTestCase(TestCase):
         return app
 
     def test_index_route(self):
+        # print("self==========", self)
         response = self.client.get('/')
+        print("self==============", response)
         self.assert200(response)
         self.assertTemplateUsed('index.html')
 
