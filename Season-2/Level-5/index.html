@@ -120,6 +120,9 @@
         }
 
         runConsole();
+        var s = { toString: function() { alert('Exploit 1'); } };
+        CryptoAPI.sha1.hash(s)
+
     </script>
 </body>
 </html>
