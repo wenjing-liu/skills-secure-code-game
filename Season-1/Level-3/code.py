@@ -14,42 +14,45 @@ def source():
 ### Unrelated to the exercise -- Ends here -- Please ignore
 
 class TaxPayer:
-
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.prof_picture = None
-        self.tax_form_attachment = None
 
-    # returns the path of an optional profile picture that users can set
     def get_prof_picture(self, path=None):
-        # setting a profile picture is optional
         if not path:
-            pass
-
-        # defends against path traversal attacks
-        if path.startswith('/') or path.startswith('..'):
             return None
 
-        # builds path
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        prof_picture_path = os.path.normpath(os.path.join(base_dir, path))
+        safe_path = self._sanitize_path(path)
+        if not safe_path:
+            return None
 
-        with open(prof_picture_path, 'rb') as pic:
-            picture = bytearray(pic.read())
+        return safe_path
 
-        # assume that image is returned on screen after this
-        return prof_picture_path
-
-    # returns the path of an attached tax form that every user should submit
     def get_tax_form_attachment(self, path=None):
-        tax_data = None
-
         if not path:
-            raise Exception("Error: Tax form is required for all users")
+            raise ValueError("Tax form path is required")
 
-        with open(path, 'rb') as form:
-            tax_data = bytearray(form.read())
+        safe_path = self._sanitize_path(path)
+        if not safe_path:
+            return None
 
-        # assume that tax data is returned on screen after this
-        return path
+        return safe_path
+
+    def _sanitize_path(self, path):
+        base_dir = os.path.abspath(os.path.dirname(__file__))
+        safe_path = os.path.normpath(os.path.join(base_dir, path))
+
+        if not os.path.commonpath([base_dir, safe_path]) == base_dir:
+            return None
+
+        return safe_path
+
+    def _read_file(self, path):
+        try:
+            with open(path, 'rb') as file:
+                return bytearray(file.read())
+        except FileNotFoundError:
+            return None
+        except Exception as e:
+            print(f"Error reading file: {e}")
+            return None
